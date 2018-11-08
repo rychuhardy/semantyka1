@@ -1,7 +1,4 @@
 import networkx as nx
-import pylab
-import matplotlib.pyplot as plt
-import pandas as pd
 import plotly.plotly as py
 from plotly.graph_objs import *
 
@@ -11,6 +8,10 @@ edge_file = 'out.txt'
 
 
 G = nx.read_weighted_edgelist(edge_file, delimiter=';', encoding='utf-8')
+# remove weak nodes
+toRemove = [node for node, degree in G.degree().items() if degree < 2]
+G.remove_nodes_from(toRemove)
+
 
 N = len(G.nodes())
 
@@ -20,31 +21,36 @@ Xv = [pos[k][0] for k in G.nodes()]
 Yv = [pos[k][1] for k in G.nodes()]
 Xed = []
 Yed = []
+weights = []
 for edge in G.edges():
+    weights += [str(G.get_edge_data(edge[0], edge[1])['weight'])]
     Xed += [pos[edge[0]][0], pos[edge[1]][0], None]
     Yed += [pos[edge[0]][1], pos[edge[1]][1], None]
 
 trace3 = Scatter(x=Xed,
                  y=Yed,
-                 mode='lines',
+                 mode='lines+text',
+                 name='edges',
                  line=dict(color='rgb(210,210,210)', width=1),
-                 hoverinfo='none'
+                 text=weights,
+                 hoverinfo='text',
+                 hovertext=weights,
+                 textposition='top center'
                  )
 trace4 = Scatter(x=Xv,
                  y=Yv,
-                 mode='markers',
-                 name='net',
+                 mode='markers+text',
+                 name='nodes',
                  marker=dict(symbol='circle-dot',
                              size=5,
                              color='#6959CD',
                              line=dict(color='rgb(50,50,50)', width=0.5)
                              ),
-                 #text=labels,
+                 text=G.nodes(),
                  hoverinfo='text'
                  )
 
-annot = "This networkx.Graph has the Fruchterman-Reingold layout<br>Code:" + \
-        "<a href='http://nbviewer.ipython.org/gist/empet/07ea33b2e4e0b84193bd'> [2]</a>"
+annot = "Graf skojarzeń dla słów: chłopiec, dziecko, mały, dziewczyna"
 
 
 axis=dict(showline=False, # hide axis line, grid, ticklabels and  title
@@ -53,10 +59,9 @@ axis=dict(showline=False, # hide axis line, grid, ticklabels and  title
           showticklabels=False,
           title=''
           )
-width=800
-height=800
-layout=Layout(title= "Coauthorship network of scientists working on network theory and experiment"+\
-              "<br> Data source: <a href='https://networkdata.ics.uci.edu/data.php?id=11'> [1]</a>",
+width=1200
+height=1200
+layout=Layout(title= "Graf skojarzeń dla słów: chłopiec, dziecko, mały, dziewczyna",
     font= dict(size=12),
     showlegend=False,
     autosize=False,
@@ -91,4 +96,4 @@ layout=Layout(title= "Coauthorship network of scientists working on network theo
 data1 = [trace3, trace4]
 fig1 = Figure(data=data1, layout=layout)
 fig1['layout']['annotations'][0]['text'] = annot
-py.iplot(fig1, filename='Coautorship-network-nx')
+py.iplot(fig1, filename='semantyka1')
